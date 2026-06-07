@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Image to PDF</title>
+</head>
+<body>
+
+<input type="file" id="images" multiple accept="image/*">
+<button id="makePdf">PDF 생성</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+document.getElementById("makePdf").addEventListener("click", async () => {
+
+    const files = document.getElementById("images").files;
+
+    if (files.length === 0) {
+        alert("이미지를 선택하세요.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+
+    let pdf = null;
+
+    for (let i = 0; i < files.length; i++) {
+
+        const file = files[i];
+
+        const dataUrl = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
+
+        const img = await new Promise(resolve => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.src = dataUrl;
+        });
+
+        const width = img.width;
+        const height = img.height;
+
+        if (i === 0) {
+            pdf = new jsPDF({
+                orientation: width > height ? "landscape" : "portrait",
+                unit: "px",
+                format: [width, height]
+            });
+        } else {
+            pdf.addPage([width, height],
+                width > height ? "landscape" : "portrait");
+        }
+
+        pdf.addImage(dataUrl, "JPEG", 0, 0, width, height);
+    }
+
+    pdf.save("output.pdf");
+});
+</script>
+
+</body>
+</html>
