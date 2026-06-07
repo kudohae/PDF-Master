@@ -1,66 +1,431 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko" data-theme="light">
 <head>
-    <meta charset="utf-8">
-    <title>Image to PDF</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="브라우저에서 직접 실행되는 무료 PDF 편집기. 파일이 서버로 전송되지 않습니다.">
+  <title>PDF Master — 브라우저 기반 PDF 편집기</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<input type="file" id="images" multiple accept="image/*">
-<button id="makePdf">PDF 생성</button>
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#4f46e5"/>
+          <path d="M8 6h11l7 7v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="white" fill-opacity="0.9"/>
+          <path d="M19 6l7 7h-5a2 2 0 0 1-2-2V6z" fill="white" fill-opacity="0.5"/>
+          <rect x="10" y="16" width="12" height="1.5" rx="0.75" fill="#4f46e5"/>
+          <rect x="10" y="19.5" width="8" height="1.5" rx="0.75" fill="#4f46e5"/>
+          <rect x="10" y="23" width="10" height="1.5" rx="0.75" fill="#4f46e5"/>
+        </svg>
+        <span class="logo-text">PDF Master</span>
+      </div>
+      <div class="header-actions">
+        <span class="privacy-badge" title="모든 처리는 브라우저 내부에서만 이루어집니다">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1a5 5 0 0 0-5 5v1H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1V6a5 5 0 0 0-5-5zm3 6V6a3 3 0 1 0-6 0v1h6z"/></svg>
+          개인정보 보호
+        </span>
+        <button id="theme-toggle" class="btn-icon" title="테마 전환" aria-label="다크/라이트 모드 전환">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="tool-nav" role="navigation" aria-label="도구 선택">
+    <div class="nav-scroll">
+      <button class="nav-item active" data-tool="image-to-pdf" aria-selected="true">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4 3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+        이미지 → PDF
+      </button>
+      <button class="nav-item" data-tool="merge-pdf" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9 2a1 1 0 0 0-1 1v6H3a1 1 0 1 0 0 2h5v6a1 1 0 1 0 2 0v-6h5a1 1 0 1 0 0-2h-5V3a1 1 0 0 0-1-1z"/></svg>
+        PDF 병합
+      </button>
+      <button class="nav-item" data-tool="delete-pages" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 2a1 1 0 0 0-.894.553L7.382 4H4a1 1 0 0 0 0 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a1 1 0 0 0 0-2h-3.382l-.724-1.447A1 1 0 0 0 11 2H9zM7 8a1 1 0 0 1 2 0v6a1 1 0 1 1-2 0V8zm4 0a1 1 0 1 1 2 0v6a1 1 0 1 1-2 0V8z" clip-rule="evenodd"/></svg>
+        페이지 삭제
+      </button>
+      <button class="nav-item" data-tool="reorder-pages" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M3 5a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm0 5a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm0 5a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1z"/></svg>
+        페이지 재정렬
+      </button>
+      <button class="nav-item" data-tool="insert-pages" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1z" clip-rule="evenodd"/></svg>
+        페이지 삽입
+      </button>
+      <button class="nav-item" data-tool="extract-pages" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zM6.293 6.707a1 1 0 0 1 0-1.414l3-3a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1-1.414 1.414L11 5.414V13a1 1 0 1 1-2 0V5.414L7.707 6.707a1 1 0 0 1-1.414 0z" clip-rule="evenodd"/></svg>
+        페이지 추출
+      </button>
+      <button class="nav-item" data-tool="split-pdf" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5zm10 0a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2zm-10 8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H5zm10 0a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2z"/></svg>
+        PDF 분할
+      </button>
+      <button class="nav-item" data-tool="rotate-pages" aria-selected="false">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4 2a1 1 0 0 1 1 1v2.101a7.002 7.002 0 0 1 11.601 2.566 1 1 0 1 1-1.885.666A5.002 5.002 0 0 0 5.999 7H8a1 1 0 0 1 0 2H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm.008 9.057a1 1 0 0 1 1.276.61A5.002 5.002 0 0 0 14.001 13H12a1 1 0 1 1 0-2h4a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0v-2.101a7.002 7.002 0 0 1-11.601-2.566 1 1 0 0 1 .61-1.276z" clip-rule="evenodd"/></svg>
+        페이지 회전
+      </button>
+    </div>
+  </nav>
 
-<script>
-document.getElementById("makePdf").addEventListener("click", async () => {
+  <!-- ===== MAIN ===== -->
+  <main class="app-main">
 
-    const files = document.getElementById("images").files;
+    <!-- ==================== 1. IMAGE → PDF ==================== -->
+    <section id="image-to-pdf" class="tool-panel active" aria-label="이미지를 PDF로 변환">
+      <div class="panel-header">
+        <h2>이미지 → PDF 변환</h2>
+        <p>JPG, PNG, WEBP 이미지를 선택하여 PDF로 변환합니다. 드래그로 순서를 변경할 수 있습니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="itp-dropzone" role="button" tabindex="0" aria-label="이미지 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">이미지를 여기에 드래그하거나 <label for="itp-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">JPG, JPEG, PNG, WEBP 지원 · 여러 파일 동시 선택 가능</p>
+          <input type="file" id="itp-input" multiple accept="image/jpeg,image/png,image/webp" class="file-input" aria-label="이미지 파일 선택">
+        </div>
+        <div class="preview-toolbar hidden" id="itp-toolbar">
+          <span id="itp-count" class="file-count"></span>
+          <button class="btn btn-secondary btn-sm" id="itp-add-more">파일 추가</button>
+          <input type="file" id="itp-add-input" multiple accept="image/jpeg,image/png,image/webp" class="file-input" aria-label="추가 이미지 선택">
+          <button class="btn btn-ghost btn-sm" id="itp-reset">초기화</button>
+        </div>
+        <div class="thumbnail-grid sortable" id="itp-grid" role="list" aria-label="이미지 목록 (드래그로 순서 변경 가능)"></div>
+        <div class="action-bar hidden" id="itp-actions">
+          <button class="btn btn-primary" id="itp-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            PDF 생성 및 다운로드
+          </button>
+        </div>
+      </div>
+    </section>
 
-    if (files.length === 0) {
-        alert("이미지를 선택하세요.");
-        return;
-    }
+    <!-- ==================== 2. PDF MERGE ==================== -->
+    <section id="merge-pdf" class="tool-panel" aria-label="PDF 병합">
+      <div class="panel-header">
+        <h2>PDF 병합</h2>
+        <p>여러 PDF 파일을 하나로 합칩니다. 드래그로 순서를 변경할 수 있습니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="mp-dropzone" role="button" tabindex="0" aria-label="PDF 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">PDF 파일을 여기에 드래그하거나 <label for="mp-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">여러 PDF 파일 동시 선택 가능</p>
+          <input type="file" id="mp-input" multiple accept="application/pdf" class="file-input" aria-label="PDF 파일 선택">
+        </div>
+        <div class="preview-toolbar hidden" id="mp-toolbar">
+          <span id="mp-count" class="file-count"></span>
+          <button class="btn btn-secondary btn-sm" id="mp-add-more">파일 추가</button>
+          <input type="file" id="mp-add-input" multiple accept="application/pdf" class="file-input" aria-label="추가 PDF 선택">
+          <button class="btn btn-ghost btn-sm" id="mp-reset">초기화</button>
+        </div>
+        <ul class="file-list sortable" id="mp-list" role="list" aria-label="PDF 파일 목록 (드래그로 순서 변경 가능)"></ul>
+        <div class="action-bar hidden" id="mp-actions">
+          <div class="action-info" id="mp-info"></div>
+          <button class="btn btn-primary" id="mp-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            병합 후 다운로드
+          </button>
+        </div>
+      </div>
+    </section>
 
-    const { jsPDF } = window.jspdf;
+    <!-- ==================== 3. DELETE PAGES ==================== -->
+    <section id="delete-pages" class="tool-panel" aria-label="PDF 페이지 삭제">
+      <div class="panel-header">
+        <h2>페이지 삭제</h2>
+        <p>삭제할 페이지를 선택한 후 저장합니다. 원본 파일은 변경되지 않습니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="dp-dropzone" role="button" tabindex="0" aria-label="PDF 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">PDF 파일을 여기에 드래그하거나 <label for="dp-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">단일 PDF 파일</p>
+          <input type="file" id="dp-input" accept="application/pdf" class="file-input" aria-label="PDF 파일 선택">
+        </div>
+        <div class="preview-toolbar hidden" id="dp-toolbar">
+          <span id="dp-info" class="file-count"></span>
+          <span id="dp-selected" class="selected-count"></span>
+          <button class="btn btn-secondary btn-sm" id="dp-select-all">전체 선택</button>
+          <button class="btn btn-secondary btn-sm" id="dp-deselect-all">전체 해제</button>
+          <button class="btn btn-ghost btn-sm" id="dp-reset">초기화</button>
+        </div>
+        <div class="thumbnail-grid selectable" id="dp-grid" role="list" aria-label="페이지 목록 (클릭하여 삭제할 페이지 선택)"></div>
+        <div class="action-bar hidden" id="dp-actions">
+          <div class="action-info" id="dp-action-info"></div>
+          <button class="btn btn-danger" id="dp-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 2a1 1 0 0 0-.894.553L7.382 4H4a1 1 0 0 0 0 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a1 1 0 0 0 0-2h-3.382l-.724-1.447A1 1 0 0 0 11 2H9zM7 8a1 1 0 0 1 2 0v6a1 1 0 1 1-2 0V8zm4 0a1 1 0 1 1 2 0v6a1 1 0 1 1-2 0V8z" clip-rule="evenodd"/></svg>
+            선택 페이지 삭제 후 저장
+          </button>
+        </div>
+      </div>
+    </section>
 
-    let pdf = null;
+    <!-- ==================== 4. REORDER PAGES ==================== -->
+    <section id="reorder-pages" class="tool-panel" aria-label="PDF 페이지 재정렬">
+      <div class="panel-header">
+        <h2>페이지 재정렬</h2>
+        <p>페이지 썸네일을 드래그하여 순서를 변경한 후 저장합니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="rp-dropzone" role="button" tabindex="0" aria-label="PDF 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">PDF 파일을 여기에 드래그하거나 <label for="rp-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">단일 PDF 파일</p>
+          <input type="file" id="rp-input" accept="application/pdf" class="file-input" aria-label="PDF 파일 선택">
+        </div>
+        <div class="preview-toolbar hidden" id="rp-toolbar">
+          <span id="rp-info" class="file-count"></span>
+          <button class="btn btn-ghost btn-sm" id="rp-reset">초기화</button>
+        </div>
+        <div class="thumbnail-grid sortable" id="rp-grid" role="list" aria-label="페이지 목록 (드래그로 순서 변경 가능)"></div>
+        <div class="action-bar hidden" id="rp-actions">
+          <button class="btn btn-primary" id="rp-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            순서 적용 후 저장
+          </button>
+        </div>
+      </div>
+    </section>
 
-    for (let i = 0; i < files.length; i++) {
+    <!-- ==================== 5. INSERT PAGES ==================== -->
+    <section id="insert-pages" class="tool-panel" aria-label="PDF 페이지 삽입">
+      <div class="panel-header">
+        <h2>페이지 삽입</h2>
+        <p>기존 PDF에 다른 PDF의 페이지를 원하는 위치에 삽입합니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="two-col-upload">
+          <div class="upload-col">
+            <h3 class="upload-col-title">기본 PDF</h3>
+            <div class="drop-zone drop-zone-sm" id="ip-base-dropzone" role="button" tabindex="0" aria-label="기본 PDF 업로드">
+              <svg class="drop-icon-sm" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M10 22l6-6 6 6"/><path d="M16 16v12"/>
+                <path d="M26.75 20.09A6.67 6.67 0 0 0 21.33 8a9.33 9.33 0 0 0-17.33 2.67A5.33 5.33 0 0 0 5.33 21.33"/>
+              </svg>
+              <p class="drop-text-sm"><label for="ip-base-input" class="drop-link">기본 PDF 선택</label></p>
+              <input type="file" id="ip-base-input" accept="application/pdf" class="file-input" aria-label="기본 PDF 파일 선택">
+            </div>
+            <div id="ip-base-info" class="upload-file-info hidden"></div>
+          </div>
+          <div class="upload-col">
+            <h3 class="upload-col-title">삽입할 PDF</h3>
+            <div class="drop-zone drop-zone-sm" id="ip-insert-dropzone" role="button" tabindex="0" aria-label="삽입할 PDF 업로드">
+              <svg class="drop-icon-sm" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M10 22l6-6 6 6"/><path d="M16 16v12"/>
+                <path d="M26.75 20.09A6.67 6.67 0 0 0 21.33 8a9.33 9.33 0 0 0-17.33 2.67A5.33 5.33 0 0 0 5.33 21.33"/>
+              </svg>
+              <p class="drop-text-sm"><label for="ip-insert-input" class="drop-link">삽입할 PDF 선택</label></p>
+              <input type="file" id="ip-insert-input" accept="application/pdf" class="file-input" aria-label="삽입할 PDF 파일 선택">
+            </div>
+            <div id="ip-insert-info" class="upload-file-info hidden"></div>
+          </div>
+        </div>
+        <div class="insert-controls hidden" id="ip-controls">
+          <div class="form-group">
+            <label class="form-label" for="ip-position">삽입 위치</label>
+            <div class="insert-position-row">
+              <span class="form-hint">페이지</span>
+              <input type="number" id="ip-position" class="form-input input-narrow" min="0" value="0" aria-label="삽입할 페이지 번호">
+              <span class="form-hint" id="ip-position-hint">번 뒤에 삽입 (0 = 맨 앞)</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="ip-reset">초기화</button>
+        </div>
+        <div class="action-bar hidden" id="ip-actions">
+          <div class="action-info" id="ip-action-info"></div>
+          <button class="btn btn-primary" id="ip-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            페이지 삽입 후 저장
+          </button>
+        </div>
+      </div>
+    </section>
 
-        const file = files[i];
+    <!-- ==================== 6. EXTRACT PAGES ==================== -->
+    <section id="extract-pages" class="tool-panel" aria-label="PDF 페이지 추출">
+      <div class="panel-header">
+        <h2>페이지 추출</h2>
+        <p>원하는 페이지를 선택하거나 범위를 입력하여 새 PDF로 추출합니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="ep-dropzone" role="button" tabindex="0" aria-label="PDF 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">PDF 파일을 여기에 드래그하거나 <label for="ep-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">단일 PDF 파일</p>
+          <input type="file" id="ep-input" accept="application/pdf" class="file-input" aria-label="PDF 파일 선택">
+        </div>
+        <div class="preview-toolbar hidden" id="ep-toolbar">
+          <span id="ep-info" class="file-count"></span>
+          <span id="ep-selected" class="selected-count"></span>
+          <div class="range-input-group">
+            <input type="text" id="ep-range" class="form-input" placeholder="예: 1, 3-5, 7" aria-label="추출할 페이지 범위 입력">
+            <button class="btn btn-secondary btn-sm" id="ep-apply-range">범위 적용</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="ep-select-all">전체 선택</button>
+          <button class="btn btn-secondary btn-sm" id="ep-deselect-all">전체 해제</button>
+          <button class="btn btn-ghost btn-sm" id="ep-reset">초기화</button>
+        </div>
+        <div class="thumbnail-grid selectable" id="ep-grid" role="list" aria-label="페이지 목록 (클릭하여 추출할 페이지 선택)"></div>
+        <div class="action-bar hidden" id="ep-actions">
+          <div class="action-info" id="ep-action-info"></div>
+          <button class="btn btn-primary" id="ep-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            선택 페이지 추출 후 저장
+          </button>
+        </div>
+      </div>
+    </section>
 
-        const dataUrl = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.readAsDataURL(file);
-        });
+    <!-- ==================== 7. SPLIT PDF ==================== -->
+    <section id="split-pdf" class="tool-panel" aria-label="PDF 분할">
+      <div class="panel-header">
+        <h2>PDF 분할</h2>
+        <p>PDF를 각 페이지별 또는 지정한 범위별로 분할합니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="sp-dropzone" role="button" tabindex="0" aria-label="PDF 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">PDF 파일을 여기에 드래그하거나 <label for="sp-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">단일 PDF 파일</p>
+          <input type="file" id="sp-input" accept="application/pdf" class="file-input" aria-label="PDF 파일 선택">
+        </div>
+        <div class="split-controls hidden" id="sp-controls">
+          <div class="form-group">
+            <label class="form-label">분할 방식</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="sp-mode" value="each" checked>
+                <span>각 페이지별 분할 (각 페이지를 개별 PDF로)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="sp-mode" value="range">
+                <span>범위 지정 분할</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group hidden" id="sp-range-group">
+            <label class="form-label" for="sp-ranges">범위 입력</label>
+            <textarea id="sp-ranges" class="form-textarea" rows="4"
+              placeholder="한 줄에 하나씩 범위를 입력하세요.&#10;예:&#10;1-3&#10;4-6&#10;7"></textarea>
+            <p class="form-hint-text">각 범위가 하나의 PDF 파일이 됩니다.</p>
+          </div>
+          <div id="sp-file-info" class="file-info-box"></div>
+          <button class="btn btn-ghost btn-sm" id="sp-reset">초기화</button>
+        </div>
+        <div class="action-bar hidden" id="sp-actions">
+          <button class="btn btn-primary" id="sp-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            분할 실행
+          </button>
+        </div>
+        <div class="split-results hidden" id="sp-results">
+          <h3 class="results-title">분할 결과</h3>
+          <ul class="results-list" id="sp-results-list"></ul>
+        </div>
+      </div>
+    </section>
 
-        const img = await new Promise(resolve => {
-            const image = new Image();
-            image.onload = () => resolve(image);
-            image.src = dataUrl;
-        });
+    <!-- ==================== 8. ROTATE PAGES ==================== -->
+    <section id="rotate-pages" class="tool-panel" aria-label="PDF 페이지 회전">
+      <div class="panel-header">
+        <h2>페이지 회전</h2>
+        <p>원하는 페이지를 선택한 후 회전 각도를 지정하여 저장합니다.</p>
+      </div>
+      <div class="panel-body">
+        <div class="drop-zone" id="rot-dropzone" role="button" tabindex="0" aria-label="PDF 파일 업로드 영역">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 32l8-8 8 8"/><path d="M24 24V42"/>
+            <path d="M40.13 30.13A10 10 0 0 0 32 12a14 14 0 0 0-26 4 8 8 0 0 0 2 16"/>
+          </svg>
+          <p class="drop-text">PDF 파일을 여기에 드래그하거나 <label for="rot-input" class="drop-link">파일 선택</label></p>
+          <p class="drop-hint">단일 PDF 파일</p>
+          <input type="file" id="rot-input" accept="application/pdf" class="file-input" aria-label="PDF 파일 선택">
+        </div>
+        <div class="preview-toolbar hidden" id="rot-toolbar">
+          <span id="rot-info" class="file-count"></span>
+          <span id="rot-selected" class="selected-count"></span>
+          <div class="rotation-controls">
+            <span class="form-hint">회전:</span>
+            <button class="btn btn-secondary btn-sm" data-angle="90" id="rot-90">90° 시계</button>
+            <button class="btn btn-secondary btn-sm" data-angle="180" id="rot-180">180°</button>
+            <button class="btn btn-secondary btn-sm" data-angle="270" id="rot-270">90° 반시계</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="rot-select-all">전체 선택</button>
+          <button class="btn btn-secondary btn-sm" id="rot-deselect-all">전체 해제</button>
+          <button class="btn btn-ghost btn-sm" id="rot-reset">초기화</button>
+        </div>
+        <div class="thumbnail-grid selectable" id="rot-grid" role="list" aria-label="페이지 목록 (클릭하여 회전할 페이지 선택)"></div>
+        <div class="action-bar hidden" id="rot-actions">
+          <div class="action-info" id="rot-action-info"></div>
+          <button class="btn btn-primary" id="rot-generate">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1zm3.293-7.707a1 1 0 0 1 1.414 0L9 10.586V3a1 1 0 1 1 2 0v7.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 0-1.414z" clip-rule="evenodd"/></svg>
+            회전 적용 후 저장
+          </button>
+        </div>
+      </div>
+    </section>
 
-        const width = img.width;
-        const height = img.height;
+  </main>
 
-        if (i === 0) {
-            pdf = new jsPDF({
-                orientation: width > height ? "landscape" : "portrait",
-                unit: "px",
-                format: [width, height]
-            });
-        } else {
-            pdf.addPage([width, height],
-                width > height ? "landscape" : "portrait");
-        }
+  <!-- ===== PROGRESS OVERLAY ===== -->
+  <div id="progress-overlay" class="progress-overlay hidden" role="status" aria-live="polite">
+    <div class="progress-box">
+      <div class="progress-spinner"></div>
+      <p id="progress-message" class="progress-message">처리 중...</p>
+      <div class="progress-bar-wrap">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <p id="progress-detail" class="progress-detail"></p>
+    </div>
+  </div>
 
-        pdf.addImage(dataUrl, "JPEG", 0, 0, width, height);
-    }
+  <!-- ===== TOAST ===== -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-    pdf.save("output.pdf");
-});
-</script>
+  <!-- ===== FOOTER ===== -->
+  <footer class="app-footer">
+    <p>모든 파일 처리는 브라우저 내부에서만 이루어집니다. 파일이 서버로 전송되지 않습니다.</p>
+    <p>
+      <a href="https://github.com/kudohae/pdf-master" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+      &middot; pdf-lib &middot; PDF.js
+    </p>
+  </footer>
 
+  <!-- Library CDN -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
